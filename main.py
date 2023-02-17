@@ -1,6 +1,6 @@
 # import sqlalchemy
 import secrets
-
+import os
 from flask import Flask, render_template, redirect, url_for, flash, abort
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
@@ -24,8 +24,7 @@ gravatar = Gravatar(app,
                     use_ssl=False,
                     base_url=None)
 
-# app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
-app.config['SECRET_KEY'] = secrets.token_urlsafe(32)
+app.config['SECRET_KEY'] = str(os.environ.get('THE_KEY'))
 Bootstrap(app)
 
 # Configure and start Login Manager
@@ -33,11 +32,11 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 # Configure CKEditor
-app.config['CKEDITOR_PKG_TYPE'] = 'basic'
+app.config['CKEDITOR_PKG_TYPE'] = 'standard'
 ckeditor = CKEditor(app)
 
 # CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL",  "sqlite:///blog.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -135,7 +134,7 @@ def register():
         hash_and_salted_password = generate_password_hash(
             password=register_form.password.data,
             method="pbkdf2:sha256",
-            salt_length=16,
+            salt_length=8,
         )
         new_user = User(
             email=register_form.email.data,
